@@ -2,11 +2,6 @@
 Результатом выполнения должна быть сумма по истечению депозита"""
 
 def bank(sum, age, percent):
-    result = sum * (1 + percent/100) ** age
-
-
-    return result
-
-
+    return sum * (1 + percent/100) ** age
 
 print(bank(100, 3, 3))

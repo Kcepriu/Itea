@@ -10,8 +10,8 @@ country_capital={
     'Estonia':  'Tallinn'
 }
 
-capitals = ['Austria', 'Iran', 'Poland', 'Sweden']
+countrys = ['Austria', 'Iran', 'Poland', 'Sweden']
 
-for capital in capitals:
-    if capital in country_capital:
-        print(country_capital[capital])
+for country in countrys:
+    if country in country_capital:
+        print(country_capital[country])
