@@ -70,3 +70,5 @@ if __name__ == '__main__':
     car2.print_info()
     car2.change_the_price()
     car2.print_info()
+
+

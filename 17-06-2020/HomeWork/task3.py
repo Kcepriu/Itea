@@ -13,7 +13,8 @@ class Point:
         self.y = y
         self.z = z
     def get_coordinate(self, name):
-        return self.__dict__[name]
+        #return self.__dict__[name]
+        return getattr(self, name)
 
     def set_coordinate(self, name, value):
         self.__dict__[name] = value
