@@ -5,6 +5,8 @@
 
 class Car:
     def __init__(self, vin, make, year, owner = '', price=0):
+        #Антон спитаю тут. А нема якихось рекомендацій, чи загальноприйнятих правил по передачі параметрів в клас?
+
         self.vin   = vin
         self.make  = make
         self.year  = year
@@ -28,6 +30,21 @@ class Car:
         print('Owner -', self.owner)
         print('Price -', self.price)
 
+class Truck(Car):
+    def __init__(self, vin, make, year, owner = '', price=0, max_carrying=0):
+        Car.__init__(self, vin, make, year, owner, price)
+        self.max_carrying = max_carrying
+
+    def change_the_price(self, percent=5):
+        '''По замовчанню на інший відсоток зміними ціну'''
+        Car.change_the_price(self, percent)
+
+    def print_info(self):
+        Car.print_info(self)
+        print('Max carrying -', self.max_carrying)
+
+
+
 car1 = Car('123456', 'Ford', '2012', '', 5000)
 
 
@@ -37,3 +54,8 @@ car1.print_info()
 car1.change_the_price(10)
 car1.print_info()
 
+car2 = Truck('98765', 'Volvo', '2019', '', 80000, 20000)
+
+car2.print_info()
+car2.change_the_price()
+car2.print_info()
