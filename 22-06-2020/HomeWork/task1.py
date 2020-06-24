@@ -30,5 +30,11 @@ def create_list(start, count):
     result = [i for i in range(start, start+count)]
     return result
 
+@repeater(10)
+def test_step(s, d):
+    return s ** d
+
 if __name__ == '__main__':
     print(create_list(2, 3))
+
+    print(test_step(4, 2))
