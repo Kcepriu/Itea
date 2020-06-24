@@ -30,19 +30,19 @@ class Complex:
     def __neg__(self):
         return Complex(-self.a , -self.b)
 
+if __name__ == '__main__':
+    n1 = Complex(-3, -5)
+    print(n1)
 
-n1 = Complex(-3, -4)
-print(n1)
-
-n2 = Complex(2, 4)
-print(n2)
+    n2 = Complex(2, 4)
+    print(n2)
 
 
-print(n1 + n2)
-print(n1 - n2)
-print(n1 * n2)
-print(n1 / n2)
-print(-n1)
+    print(n1 + n2)
+    print(n1 - n2)
+    print(n1 * n2)
+    print(n1 / n2)
+    print(-n1)
 
 
 
