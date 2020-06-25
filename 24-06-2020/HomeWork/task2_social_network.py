@@ -13,6 +13,7 @@
 и их посты.'''
 
 from datetime import datetime
+import re
 
 class NoLoginUser(Exception):
     pass
@@ -24,6 +25,12 @@ class PasswordError(Exception):
     pass
 
 class NoFindUser(Exception):
+    pass
+
+class ErrorValidationPasswords(Exception):
+    pass
+
+class UserWithLoginIsRegistered(Exception):
     pass
 
 class Post:
@@ -38,11 +45,13 @@ class Post:
 
 class User:
     def __new__(cls, *args, **kwargs):
+        if not re.match('^\w*((\d[a-z])+|([a-z]\d)+)\w*', args[2]):
+            raise ErrorValidationPasswords
         #Отут треба перевірити валідність пароля і логіна
         #викликати помилку якщо не відповідають
         #помилку обробити в класі, де додаватиметься користувач
         #print(args[0])
-        pass
+        return super().__new__(cls)
 
     def __init__(self, name, login, passwords, role):
         self._name = name
@@ -55,9 +64,13 @@ class User:
     def name(self):
         return self._name
 
+    #Мабуть пароль повертати не сама гарна ідея. Краще перероблю в метод, який перевірятиме чи правильний пароль
     @property
     def passwords(self):
         return self._passwords
+
+    def is_passwd_ok(self, password):
+        return self._passwords == password
 
     @property
     def login(self):
@@ -67,34 +80,65 @@ class User:
     def is_admin(self):
         return self._role == 'Admin'
 
-class SocialNetwork:
+    def __str__(self):
+        return f'Name:\t{self._name}\nLogin:\t{self._login}\nRole:\t{self._role}\nPassw:\t{self._passwords}'
+
+class CommandLine:
+    def print_help(self):
+        print('\tquit')
+        print('\tregistered_user(username, login, passwd, role)')
+        print('\tlog_in(login, passwd)')
+        print('\tlog_off()')
+        print()
+
+    def run_comman_line(self):
+        while True:
+            print('Enter the command')
+            print('Enter help to list available commands')
+            command = input('command>')
+
+            if command == 'help':
+                self.print_help()
+            elif command == 'quit':
+                break
+            elif 'registered_user' in command:
+                print('registered_user')
+            else:
+                print('Command error.')
+                self.print_help()
+
+
+class SocialNetwork(CommandLine):
     def __init__(self):
         self._users = {}
         self._posts = []
         self._active_user = None
+        self.run_comman_line()
 
     def find_user(self, login):
         return self._users.get(login)
-
+    @property
     def is_logging(self):
-        return self._active_user
+        #Можна б було і не порівнювати з Ноне. Але тоді повертає всього юзера.
+        return self._active_user != None
 
+    @property
     def is_admin(self):
-        if not self.is_logging(): return None
-        return self._active_user
+        if not self.is_logging: return None
+        return self._active_user.is_admin
 
-    # зараз отут
+    # +
     def registered_user(self, name, login, passwords, role):
         #реєстреватись може тільки незалогінений користувач
         #валідність пароля первірить клас юзер при додаванні
         #Треба перевірити чи не існує користувача з таким паролем.
-        if is_logging(self): raise NoLoginUser
-
+        if self.is_logging: raise UserLoogedIn
+        if self.find_user(login): raise UserWithLoginIsRegistered
         self._users[login] = User(name, login, passwords, role)
 
-
-    def login(self, login, passwords ):
-        if  is_logging(self):
+    # +
+    def log_in(self, login, passwords ):
+        if  self.is_logging:
             print('Вже залогінився. треба вийти')
             raise UserLoogedIn
 
@@ -104,20 +148,21 @@ class SocialNetwork:
 
         self._active_user = search_user
 
-    def logoff(self):
+    # +
+    def log_off(self):
         self._active_user = None
 
     def add_post(self, text):
-        if not is_logging(self): raise NoLoginUser
+        if not self.is_logging: raise NoLoginUser
 
         self._posts.append(Post(self._active_user, text))
 
     def list_users(self, login = None):
-        if not is_logging(self): raise NoLoginUser
-
-
-        search_user = self.find_user(login)
-
+        if not self.is_logging: raise NoLoginUser
+        # search_user = self.find_user(login)
+        for (login, user) in self._users.items():
+            print(user)
+            print()
 
         #Якщо ноне, то виводимо для адміна всіх, для юзера тількит активного
         #якщо логін вказано то для адміна виводимо юзера. а для юзере перевірити чи це він сам.
@@ -127,9 +172,27 @@ class SocialNetwork:
 
 
 if __name__ == '__main__':
+    # user1 = User('Serhii', 'KS', '111a111', 'Admin')
+    # print(user1)
+    # # print(user1._name)
+    # print(user1.login)
+    # print(user1.is_passwd_ok('111111') )
 
-    user1 = User('Serhii', 'KS', '111111', 'admin')
-
-    post1 = Post(user1, 'text posts 1', '25-06-2020')
+    #post1 = Post(user1, 'text posts 1', '25-06-2020')
 
     #print(post1)
+
+    soc_set = SocialNetwork()
+    # soc_set.registered_user('Serhii', 'KS', '111a111', 'Admin')
+    # soc_set.registered_user('Yura', 'yura', '111a111', 'User')
+    # soc_set.list_users()
+    #
+    # #soc_set.log_in('KS', '111a111')
+    # soc_set.log_in('yura', '111a111')
+    #
+    # print('is_logging', soc_set.is_logging)
+    # print('is_admin',   soc_set.is_admin)
+    #
+    # soc_set.log_off()
+    # print(soc_set.is_logging)
+
