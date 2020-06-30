@@ -117,6 +117,9 @@ class DataStorage:
     def find_user(self, login):
         return self._users.get(login)
 
+    def add_post(self, user, text):
+        self._data_set._posts.append(Post(user, text))
+
 class Registers:
     pass
 
@@ -124,11 +127,12 @@ class Registers:
 class Login:
     pass
 
-class SocialNetwork(DataStorage, CommandLine):
+class SocialNetwork():
     def __init__(self):
-        super(DataStorage).__init__()
         self._active_user = None
-        self.run_comman_line()
+        self._data_set = DataStorage()
+        # super(DataStorage).__init__()
+        # self.run_comman_line()
 
     @property
     def is_logging(self):
@@ -137,17 +141,17 @@ class SocialNetwork(DataStorage, CommandLine):
 
     @property
     def is_admin(self):
-        if not self.is_logging: return None
-        return self._active_user.is_admin
+        return None if not self.is_logging else self._active_user.is_admin
 
     # -
     def registered_user(self, name, login, passwords, role):
         #реєстреватись може тільки незалогінений користувач
         #валідність пароля первірить клас юзер при додаванні
-        #Треба перевірити чи не існує користувача з таким паролем.
+        #Треба перевірити чи не існує користувача з таким Логіном.
         if self.is_logging: raise UserLoogedIn
-        if self.find_user(login): raise UserWithLoginIsRegistered
-        self._users[login] = User(name, login, passwords, role)
+
+        if self._data_set.find_user(login): raise UserWithLoginIsRegistered
+        self._data_set._users[login] = User(name, login, passwords, role)
 
     # -
     def log_in(self, login, passwords ):
@@ -155,7 +159,7 @@ class SocialNetwork(DataStorage, CommandLine):
             print('Вже залогінився. треба вийти')
             raise UserLoogedIn
 
-        search_user = self.find_user(login)
+        search_user = self._data_set.find_user(login)
         if not search_user:  raise NoFindUser
         if search_user.passwords != passwords:  raise PasswordError
 
@@ -167,13 +171,14 @@ class SocialNetwork(DataStorage, CommandLine):
 
     def add_post(self, text):
         if not self.is_logging: raise NoLoginUser
+        self._data_set.add_post(self._active_user, text)
+        # self._data_set._posts.append(Post(self._active_user, text))
 
-        self._posts.append(Post(self._active_user, text))
 
     def list_users(self, login = None):
         if not self.is_logging: raise NoLoginUser
         # search_user = self.find_user(login)
-        for (login, user) in self._users.items():
+        for (login, user) in self._data_set._users.items():
             print(user)
             print()
 
@@ -185,27 +190,31 @@ class SocialNetwork(DataStorage, CommandLine):
 
 
 if __name__ == '__main__':
-    # user1 = User('Serhii', 'KS', '111a111', 'Admin')
+    user1 = User('Serhii', 'KS', '111a111', 'Admin')
     # print(user1)
     # # print(user1._name)
     # print(user1.login)
     # print(user1.is_passwd_ok('111111') )
-
-    #post1 = Post(user1, 'text posts 1', '25-06-2020')
-
-    #print(post1)
+    #
+    # post1 = Post(user1, 'text posts 1', '25-06-2020')
+    #
+    # print(post1)
 
     soc_set = SocialNetwork()
-    # soc_set.registered_user('Serhii', 'KS', '111a111', 'Admin')
-    # soc_set.registered_user('Yura', 'yura', '111a111', 'User')
-    # soc_set.list_users()
-    #
+    soc_set.registered_user('Serhii', 'KS', '111a111', 'Admin')
+    soc_set.registered_user('Yura', 'yura', '111a111', 'User')
+
     # #soc_set.log_in('KS', '111a111')
-    # soc_set.log_in('yura', '111a111')
+    soc_set.log_in('yura', '111a111')
     #
-    # print('is_logging', soc_set.is_logging)
+    print('is_logging', soc_set.is_logging)
     # print('is_admin',   soc_set.is_admin)
     #
     # soc_set.log_off()
     # print(soc_set.is_logging)
+
+    soc_set.list_users()
+    soc_set.add_post("Test posts 1")
+
+
 
