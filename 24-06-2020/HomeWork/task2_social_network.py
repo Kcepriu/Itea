@@ -113,7 +113,7 @@ class SocialNetwork(CommandLine):
         self._users = {}
         self._posts = []
         self._active_user = None
-        self.run_comman_line()
+        # self.run_comman_line()
 
     def find_user(self, login):
         return self._users.get(login)
