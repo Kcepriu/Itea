@@ -144,8 +144,7 @@ class SocialNetwork(CommandLine):
 
         search_user = self.find_user(login)
         if not search_user:  raise NoFindUser
-        if search_user.passwords 74189562
-        != passwords:  raise PasswordError
+        if search_user.passwords != passwords:  raise PasswordError
 
         self._active_user = search_user
 
