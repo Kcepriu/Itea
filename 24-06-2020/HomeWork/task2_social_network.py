@@ -45,16 +45,16 @@ class Post:
 
 class User:
     def __new__(cls, *args, **kwargs):
-        if not re.match('^\w*((\d[a-z])+|([a-z]\d)+)\w*', args[2]):
-            raise ErrorValidationPasswords
         #Отут треба перевірити валідність пароля і логіна
         #викликати помилку якщо не відповідають
         #помилку обробити в класі, де додаватиметься користувач
         #print(args[0])
+        if not re.match('^\w*((\d[a-z])+|([a-z]\d)+)\w*', args[2]):
+            raise ErrorValidationPasswords
         return super().__new__(cls)
 
     def __init__(self, name, login, passwords, role):
-        self._name = name
+        self._name  = name
         self._login = login
         self._passwords = passwords
         self._role = role
@@ -83,6 +83,7 @@ class User:
     def __str__(self):
         return f'Name:\t{self._name}\nLogin:\t{self._login}\nRole:\t{self._role}\nPassw:\t{self._passwords}'
 
+
 class CommandLine:
     def print_help(self):
         print('\tquit')
@@ -108,15 +109,27 @@ class CommandLine:
                 self.print_help()
 
 
-class SocialNetwork(CommandLine):
+class DataStorage:
     def __init__(self):
         self._users = {}
         self._posts = []
-        self._active_user = None
-        # self.run_comman_line()
 
     def find_user(self, login):
         return self._users.get(login)
+
+class Registers:
+    pass
+
+
+class Login:
+    pass
+
+class SocialNetwork(DataStorage, CommandLine):
+    def __init__(self):
+        super(DataStorage).__init__()
+        self._active_user = None
+        self.run_comman_line()
+
     @property
     def is_logging(self):
         #Можна б було і не порівнювати з Ноне. Але тоді повертає всього юзера.
@@ -127,7 +140,7 @@ class SocialNetwork(CommandLine):
         if not self.is_logging: return None
         return self._active_user.is_admin
 
-    # +
+    # -
     def registered_user(self, name, login, passwords, role):
         #реєстреватись може тільки незалогінений користувач
         #валідність пароля первірить клас юзер при додаванні
@@ -136,7 +149,7 @@ class SocialNetwork(CommandLine):
         if self.find_user(login): raise UserWithLoginIsRegistered
         self._users[login] = User(name, login, passwords, role)
 
-    # +
+    # -
     def log_in(self, login, passwords ):
         if  self.is_logging:
             print('Вже залогінився. треба вийти')
