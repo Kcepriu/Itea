@@ -33,6 +33,9 @@ class ErrorValidationPasswords(Exception):
 class UserWithLoginIsRegistered(Exception):
     pass
 
+class UserNoAccess(Exception):
+    pass
+
 class Post:
     def __init__(self, user, text):
         self._user = user
@@ -112,13 +115,22 @@ class CommandLine:
 class DataStorage:
     def __init__(self):
         self._users = {}
-        self._posts = []
+        self._posts = {}
 
-    def find_user(self, login):
+    def get_user(self, login):
         return self._users.get(login)
 
     def add_post(self, user, text):
-        self._data_set._posts.append(Post(user, text))
+        posts_user=self._posts.setdefault(user, [])
+        posts_user.append(Post(user, text))
+
+    def list_logins(self, login = None):
+        return filter(lambda element: True if not login else element == login, self._users.keys())
+
+    def list_posts(self, user):
+        return self._posts.get(user, [])
+
+
 
 class Registers:
     pass
@@ -131,8 +143,6 @@ class SocialNetwork():
     def __init__(self):
         self._active_user = None
         self._data_set = DataStorage()
-        # super(DataStorage).__init__()
-        # self.run_comman_line()
 
     @property
     def is_logging(self):
@@ -150,7 +160,7 @@ class SocialNetwork():
         #Треба перевірити чи не існує користувача з таким Логіном.
         if self.is_logging: raise UserLoogedIn
 
-        if self._data_set.find_user(login): raise UserWithLoginIsRegistered
+        if self._data_set.get_user(login): raise UserWithLoginIsRegistered
         self._data_set._users[login] = User(name, login, passwords, role)
 
     # -
@@ -159,7 +169,7 @@ class SocialNetwork():
             print('Вже залогінився. треба вийти')
             raise UserLoogedIn
 
-        search_user = self._data_set.find_user(login)
+        search_user = self._data_set.get_user(login)
         if not search_user:  raise NoFindUser
         if search_user.passwords != passwords:  raise PasswordError
 
@@ -172,19 +182,34 @@ class SocialNetwork():
     def add_post(self, text):
         if not self.is_logging: raise NoLoginUser
         self._data_set.add_post(self._active_user, text)
-        # self._data_set._posts.append(Post(self._active_user, text))
-
 
     def list_users(self, login = None):
         if not self.is_logging: raise NoLoginUser
-        # search_user = self.find_user(login)
-        for (login, user) in self._data_set._users.items():
-            print(user)
+
+        # Якщо не адмін не дозволяємо виводити всіх користувачів, тільки себе
+        if not self.is_admin:
+            if  not login:
+                login = self._active_user.login
+            elif login != self._active_user.login:
+                raise UserNoAccess
+
+        for element in self._data_set.list_logins(login):
+            print(self._data_set.get_user(element))
             print()
 
-        #Якщо ноне, то виводимо для адміна всіх, для юзера тількит активного
-        #якщо логін вказано то для адміна виводимо юзера. а для юзере перевірити чи це він сам.
-        #Якщо так, то виводимо інформацію про себе
+    def list_posts(self, login):
+        if not self.is_logging: raise NoLoginUser
+
+        if login != self._active_user.login:
+            raise UserNoAccess
+
+        for element in self._data_set.list_posts(login):
+            pass
+
+
+
+
+
 
 
 
@@ -204,7 +229,7 @@ if __name__ == '__main__':
     soc_set.registered_user('Serhii', 'KS', '111a111', 'Admin')
     soc_set.registered_user('Yura', 'yura', '111a111', 'User')
 
-    # #soc_set.log_in('KS', '111a111')
+    # soc_set.log_in('KS', '111a111')
     soc_set.log_in('yura', '111a111')
     #
     print('is_logging', soc_set.is_logging)
@@ -213,8 +238,14 @@ if __name__ == '__main__':
     # soc_set.log_off()
     # print(soc_set.is_logging)
 
-    soc_set.list_users()
+    soc_set.list_users('Serg')
+
     soc_set.add_post("Test posts 1")
+    soc_set.add_post("Test posts 2")
+
+
+
+
 
 
 

@@ -36,4 +36,12 @@
 # result = filter(number > 100, [10, 200, 101, 302, 16])
 # print(list(result))
 
-a = 100
+
+dd = {'as':1234, 'sd':2345, 'df': 3456}
+# print(dd)
+result = filter(lambda login: login[0] == 'as', dd.items() )
+
+
+print(list(result))
+
+# a = 100
