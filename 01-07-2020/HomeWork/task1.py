@@ -10,10 +10,12 @@
 ссылке он работает, так же должен сообщать когда скачивание
 закончится."""
 
-import time
 from threading import Thread
 import requests
 
+
+class NoLoginUser(Exception):
+    pass
 
 def downloads_threads(name_thread, type_daemon):
     def decorator(func):
@@ -25,11 +27,14 @@ def downloads_threads(name_thread, type_daemon):
 
 
 @downloads_threads('test1', False)
-def download_files(url, file_name):
+def download_files(url):
+    filename = url.split("/")[-1]
     print(f'Start downloads: {url}')
-    with open(file_name,"wb") as receive:
+
+    with open(filename,"wb") as receive:
         ufr = requests.get(url)
         receive.write(ufr.content)
+
     print(f'Stop downloads: {url}')
 
 
@@ -43,7 +48,6 @@ urls = ['https://i-fakt.ru/wp-content/uploads/2011/05/fakty-titanik.jpg',
             'https://static.ukrinform.com/photos/2019_09/1567697233-112.png',
             'https://24smi.org/public/media/resize/800x-/2017/8/7/03_NZ0hk2r.jpg',
             'https://24smi.org/public/media/resize/800x-/2017/8/7/01_8fbAoD8.jpg']
-num = 0
+
 for url in urls:
-    num += 1
-    download_files(url, 'files'+str(num)+'.jpg')
+    download_files(url)
