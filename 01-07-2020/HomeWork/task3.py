@@ -21,7 +21,7 @@ class MyConnect:
 with MyConnect('site.com', 5060) as connect:
     print(connect.read_data())
     print(connect.read_data())
-    #raise EOFError
+    raise EOFError
     print(connect.read_data())
 
 
