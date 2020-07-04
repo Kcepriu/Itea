@@ -14,6 +14,7 @@
 
 from datetime import datetime
 import re
+import shelve
 
 class NoLoginUser(Exception):
     pass
@@ -43,7 +44,8 @@ class Post:
         self._date_publication = datetime.now()
 
     def __str__(self):
-        return f'Post:\nUser:\t{self._user.name}\nDate publication:\t{self._date_publication}\nText:\t{self._text}'
+        #return f'Post:\nUser:\t{self._user.name}\nDate publication:\t{self._date_publication}\nText:\t{self._text}'
+        return f'User:\t{self._user.name}\nDate publication:\t{self._date_publication}\nText:\t{self._text}'
 
 
 class User:
@@ -67,12 +69,8 @@ class User:
     def name(self):
         return self._name
 
-    #Мабуть пароль повертати не сама гарна ідея. Краще перероблю в метод, який перевірятиме чи правильний пароль
-    @property
-    def passwords(self):
-        return self._passwords
-
     def is_passwd_ok(self, password):
+        #Пароль повертати мабуть не гарна ідея, краще напишу метод, який перевірятиме чи співпадають паролі
         return self._passwords == password
 
     @property
@@ -86,30 +84,10 @@ class User:
     def __str__(self):
         return f'Name:\t{self._name}\nLogin:\t{self._login}\nRole:\t{self._role}\nPassw:\t{self._passwords}'
 
-
-class CommandLine:
-    def print_help(self):
-        print('\tquit')
-        print('\tregistered_user(username, login, passwd, role)')
-        print('\tlog_in(login, passwd)')
-        print('\tlog_off()')
-        print()
-
-    def run_comman_line(self):
-        while True:
-            print('Enter the command')
-            print('Enter help to list available commands')
-            command = input('command>')
-
-            if command == 'help':
-                self.print_help()
-            elif command == 'quit':
-                break
-            elif 'registered_user' in command:
-                print('registered_user')
-            else:
-                print('Command error.')
-                self.print_help()
+class DataStorageBase:
+    def __init__(self, data_from_disk):
+        self._users = {}
+        self._posts = {}
 
 
 class DataStorage:
@@ -119,6 +97,9 @@ class DataStorage:
 
     def get_user(self, login):
         return self._users.get(login)
+
+    def add_user(self, name, login, passwords, role):
+        self._users[login] = User(name, login, passwords, role)
 
     def add_post(self, user, text):
         posts_user=self._posts.setdefault(user, [])
@@ -130,14 +111,6 @@ class DataStorage:
     def list_posts(self, user):
         return self._posts.get(user, [])
 
-
-
-class Registers:
-    pass
-
-
-class Login:
-    pass
 
 class SocialNetwork():
     def __init__(self):
@@ -161,17 +134,19 @@ class SocialNetwork():
         if self.is_logging: raise UserLoogedIn
 
         if self._data_set.get_user(login): raise UserWithLoginIsRegistered
-        self._data_set._users[login] = User(name, login, passwords, role)
+
+        self._data_set.add_user(name, login, passwords, role)
 
     # -
-    def log_in(self, login, passwords ):
+    def log_in(self, login, passwords):
         if  self.is_logging:
             print('Вже залогінився. треба вийти')
             raise UserLoogedIn
 
         search_user = self._data_set.get_user(login)
         if not search_user:  raise NoFindUser
-        if search_user.passwords != passwords:  raise PasswordError
+
+        if not search_user.is_passwd_ok(passwords):  raise PasswordError
 
         self._active_user = search_user
 
@@ -183,7 +158,7 @@ class SocialNetwork():
         if not self.is_logging: raise NoLoginUser
         self._data_set.add_post(self._active_user, text)
 
-    def list_users(self, login = None):
+    def list_users(self, login=None, list_post=None):
         if not self.is_logging: raise NoLoginUser
 
         # Якщо не адмін не дозволяємо виводити всіх користувачів, тільки себе
@@ -196,52 +171,72 @@ class SocialNetwork():
         for element in self._data_set.list_logins(login):
             print(self._data_set.get_user(element))
             print()
+            if list_post:
+                self.list_posts(element)
+                print()
 
     def list_posts(self, login):
         if not self.is_logging: raise NoLoginUser
 
-        if login != self._active_user.login:
+        #Не адміну не даємо бачити пости інших користувачів
+        if not self.is_admin and login != self._active_user.login:
             raise UserNoAccess
 
-        for element in self._data_set.list_posts(login):
-            pass
-
-
-
-
-
-
-
-
+        for element in self._data_set.list_posts(self._data_set.get_user(login)):
+            print(element)
+            print()
 
 if __name__ == '__main__':
-    user1 = User('Serhii', 'KS', '111a111', 'Admin')
-    # print(user1)
-    # # print(user1._name)
-    # print(user1.login)
-    # print(user1.is_passwd_ok('111111') )
-    #
-    # post1 = Post(user1, 'text posts 1', '25-06-2020')
-    #
-    # print(post1)
-
     soc_set = SocialNetwork()
     soc_set.registered_user('Serhii', 'KS', '111a111', 'Admin')
     soc_set.registered_user('Yura', 'yura', '111a111', 'User')
 
-    # soc_set.log_in('KS', '111a111')
+    #Тест 1 Спробую додати користувача з існуючим логіном
+    #soc_set.registered_user('DF',    'yura', '35654dd', 'User')
+
+    #Тест 2. Не валідний пароль
+    # soc_set.registered_user('User1',    'user', '35654', 'User')
+    # soc_set.registered_user('User1', 'user', 'ffffff', 'User')
+
+    # Тест 3. Заходимо з неправильним логіном
+    # soc_set.log_in('yura1', '111a111')
+
+    # Тест 4. Заходимо з неправильним паролем
+    #soc_set.log_in('yura', '111a222')
+
     soc_set.log_in('yura', '111a111')
-    #
-    print('is_logging', soc_set.is_logging)
-    # print('is_admin',   soc_set.is_admin)
-    #
-    # soc_set.log_off()
-    # print(soc_set.is_logging)
+    soc_set.add_post("Test posts 1 - yura")
+    soc_set.add_post("Test posts 2 - yura")
+    soc_set.add_post("Test posts 3 - yura")
 
-    soc_set.list_users('Serg')
 
-    soc_set.add_post("Test posts 1")
-    soc_set.add_post("Test posts 2")
+    # тест 5. Заходимо не вийшовищи
+    #soc_set.log_in('KS', '111a111')
+
+    soc_set.list_users('yura')
+    soc_set.list_users('yura',True)
+
+    #Тест 6 Хочемо побачити інформацію про іншого юзера без прав
+    # soc_set.list_users('KS')
+
+    #Тест 7. Хочемо побачити інформацію про всіх юзерів, не маючи прав адміна. Повинні бачити тільки себе
+    soc_set.list_users()
+
+    #Бачимо свої пости
+    soc_set.list_posts('yura')
+
+    #Test 8. Чужтх без прав адміа не бачимо
+    #soc_set.list_posts('KS')
+
+    soc_set.log_off()
+
+    soc_set.log_in('KS', '111a111')
+
+
+    soc_set.add_post("Test posts 1 - KS")
+    soc_set.add_post("Test posts 2 - KS")
+
+    soc_set.list_users()
 
 
 
