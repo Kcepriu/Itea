@@ -55,10 +55,10 @@ class Logining(Autentification):
         if not data:
             raise ErrorNoFindUser
 
-        if data.passwords == passwords:
+        if data['passwords'] == passwords:
             self._login = login
             self._passwords = passwords
-            self._admin = data.admin
+            self._admin = data['admin']
         else:
             raise ErrorWrongPassword
 
@@ -66,8 +66,10 @@ class Logining(Autentification):
     def add_user(self, login, passwords, admin):
         if not self.logged:
             raise ErrorNotLogining
+
         if not self.is_admin:
             raise ErrorNotAccess
+
 
         super().add_user(self._func_write, login, passwords, admin)
 
@@ -80,6 +82,7 @@ class ConnectDatabase:
 
     def __enter__(self):
         self._conn = sqlite3.connect(self._name_database)
+        self._conn.row_factory = sqlite3.Row
         self._cursor = self._conn.cursor()
         return self
 
@@ -136,12 +139,12 @@ class InitialData:
                                             id	INTEGER PRIMARY KEY AUTOINCREMENT,
                                             id_student	INTEGER NOT NULL,
                                             mark	INTEGER NOT NULL,
-                                            id_item	TINTEGER NOT NULL,
+                                            id_item	INTEGER NOT NULL,
                                             FOREIGN KEY(id_student) REFERENCES students(id))''',
-                                     'INSERT INTO mark_student (id_student, item_name, mark)  VALUES (?, ?, ?)'),
+                                     'INSERT INTO mark_student (id_student, id_item, mark)  VALUES (?, ?, ?)'),
                       'items':('''CREATE TABLE items (
                                 id	INTEGER PRIMARY KEY AUTOINCREMENT,
-                                items	TEXT NOT NULL)''',
+                                item_name	TEXT NOT NULL UNIQUE) ''',
                                'INSERT INTO items (item_name)  VALUES (?)')   }
 
     _test_data ={'faculties':['Філологічний', 'Психологічний', 'Педагогічний'],
@@ -160,22 +163,53 @@ class InitialData:
                               ('gpoups', 'name_group', '42 группа'), 444444444),
 
                              ('Карпенко Олександр', ('faculties', 'name_faculty', 'Педагогічний'),
-                              ('gpoups', 'name_group', '22 группа'), 3333333333)]
-        # ,
-        #
-        #          'mark_student':[(('students', 'student_number',  1256521), 'Математика', 4),
-        #                          (('students', 'student_number',  1256521), 'Математика', 3),
-        #                          (('students', 'student_number', 1256521), 'Математика', 5),
-        #                          (('students', 'student_number', 1256521), 'Фізика', 5),
-        #                          (('students', 'student_number', 1256521), 'Математика', 5),
-        #                          ]
-                 }
+                              ('gpoups', 'name_group', '22 группа'), 3333333333)],
 
+                 'mark_student':[(('students', 'student_number',  1256521), ('items', 'item_name', 'История'), 4),
+                                 (('students', 'student_number',  1256521), ('items', 'item_name', 'История'), 3),
+                                 (('students', 'student_number', 1256521),  ('items', 'item_name', 'Психология'), 5),
+                                 (('students', 'student_number', 1256521),  ('items', 'item_name', 'Философия'), 5),
+                                 (('students', 'student_number', 1256521),  ('items', 'item_name', 'Психология'), 5),
+
+                                 (('students', 'student_number', 5555555), ('items', 'item_name', 'История'), 5),
+                                 (('students', 'student_number', 5555555), ('items', 'item_name', 'История'), 5),
+                                 (('students', 'student_number', 5555555), ('items', 'item_name', 'Психология'), 5),
+                                 (('students', 'student_number', 5555555), ('items', 'item_name', 'Философия'), 5),
+                                 (('students', 'student_number', 5555555), ('items', 'item_name', 'Психология'), 5),
+
+                                 (('students', 'student_number', 444444444), ('items', 'item_name', 'История'), 3),
+                                 (('students', 'student_number', 444444444), ('items', 'item_name', 'История'), 3),
+                                 (('students', 'student_number', 444444444), ('items', 'item_name', 'Психология'), 3),
+                                 (('students', 'student_number', 444444444), ('items', 'item_name', 'Философия'), 3),
+                                 (('students', 'student_number', 444444444), ('items', 'item_name', 'Психология'), 3),
+
+                                 (('students', 'student_number', 3333333333), ('items', 'item_name', 'История'), 4),
+                                 (('students', 'student_number', 3333333333), ('items', 'item_name', 'История'), 4),
+                                 (('students', 'student_number', 3333333333), ('items', 'item_name', 'Психология'), 5),
+                                 (('students', 'student_number', 3333333333), ('items', 'item_name', 'Философия'), 4),
+                                 (('students', 'student_number', 3333333333), ('items', 'item_name', 'Психология'), 5)
+                                 ]
+                 }
 
 
 class DatabaseStudents(Logining, InitialData):
     def __init__(self, database_name):
         self._database_name = database_name
+        super().__init__(self.read_user, self.write_user)
+
+    def read_user(self, login):
+        sql_text = 'select  login, passwords, admin from users where login = ?'
+        result_sql = self._execute_sql(sql_text, [login])
+
+        result = None
+        if result_sql:
+            result = dict(result_sql)
+        # print(result)
+
+        return result
+
+    def write_user(self):
+        pass
 
     def _table_exists(self, table_name):
         #Перевіряю чи існує таблиця в  базі
@@ -188,20 +222,19 @@ class DatabaseStudents(Logining, InitialData):
                 print('error table exists')
                 pass
 
-    def _execute_sql(self, text_sql, arg=None, commit=None):
+    def _execute_sql(self, text_sql, arg=None, commit=None, fetch_all=None):
         with ConnectDatabase(self._database_name) as connector:
             cursor = connector.execute(text_sql, arg)
             if not commit:
                 connector.commit()
 
-            return cursor.fetchall()
+            return cursor.fetchall() if fetch_all else cursor.fetchone()
 
     def _get_id(self, table_name, field_name, value):
         sql_text = 'select id from '+table_name+' where '+field_name+' = ?'
         result = self._execute_sql(sql_text, [value])
         if result:
-            return result[0][0]
-
+            return result['id']
         raise NoFindId
 
     def _initial_tables(self):
@@ -215,6 +248,9 @@ class DatabaseStudents(Logining, InitialData):
                     self._execute_sql(text_sql[1], ['user', 'user', 0])
 
     def _fix_parametr(self, params):
+        #треба для заливки текстових даних
+        # Бо треба було якось вказати програмі, що деяких полів треба спочатку знайти id
+
         result = []
         for param in params:
             if type(param) == tuple:
@@ -224,18 +260,32 @@ class DatabaseStudents(Logining, InitialData):
         return result
 
     def _initial_test_data(self):
+        #Заллю в таблиці тестові дані
         for table_name, datas in self._test_data.items():
             for i in datas:
                 try:
                     param = self._fix_parametr([*i] if type(i)==tuple else [i])
                     # print(param)
-                    self._execute_sql(self._structure_tables[table_name][1], param )
+                    self._execute_sql(self._structure_tables[table_name][1], param)
                 except sqlite3.IntegrityError:
-                    #Помилка випадає через унікальність запису. Значить таці дані вже внесені
+                    #Помилка випадає через унікальність запису. Значить такі дані вже внесені. Ігноруємо
                     pass
 
 if __name__ == '__main__':
     students_databases = DatabaseStudents("students_db_new.db")
     students_databases._initial_tables()
-    students_databases._initial_test_data()
+    # students_databases._initial_test_data()
+
+    # print(students_databases._login)
+
+    # students_databases.loggin('admin', 'admin')
+    students_databases.loggin('user', 'user')
+    print(students_databases.is_admin)
+    print(students_databases.logged)
+    print(students_databases._login)
+    students_databases.logout()
+    print(students_databases.logged)
+
+
+
 
