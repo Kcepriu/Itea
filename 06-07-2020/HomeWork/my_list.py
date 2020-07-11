@@ -4,6 +4,8 @@
 объект.'''
 
 class List:
+    _data: object
+
     def __init__(self, *args):
         self._data = list(args)
 
@@ -33,7 +35,7 @@ class List:
 
         if self._is_value_in_valid_range(key, 'pop index out of range'):
             value = self._data[key]
-            self._data =self._data[:key]+self._data[key+1:]
+            self._data = self._data[:key] + self._data[key+1:]
             return  value
 
     def insert(self, key, value):
