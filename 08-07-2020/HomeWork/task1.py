@@ -36,18 +36,10 @@ class StudetnAlreadyCreated(MyError):
 class FacultiesDoesNotExist(MyError):
     pass
 
-class Autentification:
-    def add_user(self, func, *args):
-        func(*args)
+class TableIsNotEmpty(MyError):
+    pass
 
-    def read_data_from_user(self, func, *args):
-        return func(*args)
-
-    def update_user(self, func, *args):
-        func(*args)
-
-
-class Logining(Autentification):
+class Logining():
     def __init__(self, func_read, func_write, func_update):
         self._login = None
         self._passwords = None
@@ -74,7 +66,7 @@ class Logining(Autentification):
         self._admin = None
 
     def loggining(self, login, passwords):
-        data = self.read_data_from_user(self._func_read, login)
+        data = self._func_read(login)
 
         if not data:
             raise ErrorNoFindUser
@@ -95,16 +87,15 @@ class Logining(Autentification):
     def add_user(self, login, passwords, admin):
         self.access_check(True)
 
-
-        if  self.read_data_from_user(self._func_read, login):
+        if  self._func_read(login):
             raise UserWithLoginIsRegistered
 
-        super().add_user(self._func_write, login, passwords, admin)
+        self._func_write(login, passwords, admin)
 
     def update_user(self, login, new_passorsd, new_admin):
         self.access_check()
 
-        user_info = self.read_data_from_user(self._func_read, login)
+        user_info = self._func_read(login)
 
         if not user_info:
             raise ErrorNoFindUser
@@ -118,7 +109,7 @@ class Logining(Autentification):
             if new_admin:
                 raise ErrorNotAccess
 
-        super().update_user(self._func_update, login, new_passorsd, new_admin)
+        self._func_update(login, new_passorsd, new_admin)
 
 
 class ConnectDatabase:
@@ -162,7 +153,7 @@ class InitialData:
                             passwords	TEXT,
                             admin	NUMERIC DEFAULT 0)''',
                             'INSERT  INTO users (login, passwords, admin)  VALUES (?, ?, ?)',
-                             ''),
+                            'UPDATE users  SET passwords = ?, admin = ?  WHERE login = ?'),
 
                     'faculties': ('''CREATE TABLE faculties (
                                         id	INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -254,11 +245,11 @@ class InitialData:
 class DatabaseStudents(Logining, InitialData):
     def __init__(self, database_name):
         self._database_name = database_name
-        super().__init__(self.read_user, self.write_user, self.update_user)
+        super().__init__(self._read_user, self._write_user, self._update_user)
         self._initial_tables()
 
     # Функції для роботи з аутентифікацією
-    def read_user(self, login):
+    def _read_user(self, login):
         sql_text = 'select  id, login, passwords, admin from users where login = ?'
         result_sql = self._execute_sql(sql_text, [login])
 
@@ -269,12 +260,11 @@ class DatabaseStudents(Logining, InitialData):
 
         return result
 
-    def write_user(self, login, passwords, admin):
-        self._execute_sql(self._structure_tables['users'][1], [login, passwords, 1 if admin else 0])
+    def _write_user(self, login, passwords, admin):
+        self._execute_sql(self._structure_tables['users'][1], [login, passwords, 1 if admin else 0], commit=True)
 
-    def update_user(self, login, new_passorsd, new_admin):
-        #треба дописати
-        print('Не реалізував')
+    def _update_user(self, login, new_passorsd, new_admin):
+        self._execute_sql(self._structure_tables['users'][2], [new_passorsd, 1 if new_admin else 0, login], commit=True)
 
     #Функції для ініціалазіції таблиць і даних
     def _table_exists(self, table_name):
@@ -295,8 +285,8 @@ class DatabaseStudents(Logining, InitialData):
             if not self._table_exists(table_name):
                 self._execute_sql(text_sql[0])
                 if table_name == 'users':
-                    self._execute_sql(text_sql[1], ['admin', 'admin', 1])
-                    self._execute_sql(text_sql[1], ['user', 'user', 0])
+                    self._execute_sql(text_sql[1], ['admin', 'admin', 1], commit=True)
+                    self._execute_sql(text_sql[1], ['user', 'user', 0], commit=True)
 
     def _fix_parametr(self, params):
         #треба для заливки текстових даних
@@ -318,7 +308,7 @@ class DatabaseStudents(Logining, InitialData):
                 try:
                     param = self._fix_parametr([*i] if type(i)==tuple else [i])
                     # print(param)
-                    self._execute_sql(self._structure_tables[table_name][1], param)
+                    self._execute_sql(self._structure_tables[table_name][1], param, commit=True)
                 except sqlite3.IntegrityError:
                     #Помилка випадає через унікальність запису. Значить такі дані вже внесені. Ігноруємо
                     pass
@@ -346,32 +336,38 @@ class DatabaseStudents(Logining, InitialData):
        except NoFindId:
            return None
 
+    def count_rows(self, table_name):
+        sql_text = 'select count(id) count from '+table_name
+        result = self._execute_sql(sql_text)
+        return result['count'] if result else 0
+
     #-------------------------------------------
     def write_student(self, id, name, id_faculty, id_group, student_number):
         self.access_check(True)
-        if not id:
-            # перевірити чи є така группа
-            # перевірити чи є такий факультет
-            # Перевірити чи є такий кстудени
 
-            if self._found_object_from_id('groups', id_group):
-                raise GroupDoesNotExist
-            if self._found_object_from_id('faculties', id_faculty):
-                raise FacultiesDoesNotExist
-            try:
-                self.find_student(student_number)
-            except NoFindObject:
-                pass
-            else:
+        # перевірити чи є така группа
+        # перевірити чи є такий факультет
+        # Перевірити чи є такий кстудени
+        if not self._found_object_from_id('groups', id_group):
+            raise GroupDoesNotExist
+
+        if not self._found_object_from_id('faculties', id_faculty):
+            raise FacultiesDoesNotExist
+
+        try:
+            find_student = self.find_student(student_number)
+        except NoFindObject:
+            pass
+        else:
+            if id == 0 or int(id) != find_student['id']:
                 raise StudetnAlreadyCreated
 
+        if not id:
             self._execute_sql(self._structure_tables['students'][1],
                               [name, id_faculty, id_group, student_number], commit=True)
         else:
             self._execute_sql(self._structure_tables['students'][2],
                     [name, id_faculty, id_group, student_number, id], commit=True)
-
-
 
     def print_all_students(self):
         self.access_check()
@@ -392,7 +388,6 @@ class DatabaseStudents(Logining, InitialData):
 
         return student
 
-
     def print_student_find_number(self, student_number):
         self.access_check()
         text_sql = 'select id, name from students where student_number = ?'
@@ -401,7 +396,6 @@ class DatabaseStudents(Logining, InitialData):
             print(f'Студент №{student_number} ', f"{student['name']} ({student['id']})")
         except NoFindObject:
             print(f'Студента №{student_number} не знайдено')
-
 
     def print_mark_student(self, student_id):
         self.access_check()
@@ -416,17 +410,23 @@ class DatabaseStudents(Logining, InitialData):
         for mark in mark_student:
             print(f"\t{mark['item_name']} {mark['mark']}")
 
-    def print_info_current_student(self, student_id):
+    def get_info_from_students(self, student_id):
         self.access_check()
-        text_sql = '''select st.name, st.student_number, gr.name_group, fc.name_faculty    
-                    from students st
-                    INNER JOIN groups gr, faculties fc
-                    ON st.id_group = gr.id and st.id_faculty=fc.id
-                    where st.id = ?'''
+        text_sql = '''select st.name, st.student_number, gr.name_group, fc.name_faculty, st.id_group, st.id_faculty   
+                            from students st
+                            INNER JOIN groups gr, faculties fc
+                            ON st.id_group = gr.id and st.id_faculty=fc.id
+                            where st.id = ?'''
 
         student = self._execute_sql(text_sql, [student_id])
+
         if not student:
             raise NoFindId
+
+        return student
+
+    def print_info_current_student(self, student_id):
+        student = self.get_info_from_students(student_id)
         print(f"Студент: {student['name']}\n\t№ студенського: {student['student_number']}\n\tГрупа: {student['name_group']}\n\tФакультет: {student['name_faculty']}")
 
     def print_students_avg_mark(self, avg_mark):
@@ -467,7 +467,7 @@ class DatabaseStudents(Logining, InitialData):
 class Menu:
     #Примітивніше меню. Поки не готовий написати щось краще
     def __init__(self):
-        self._students_databases = DatabaseStudents("students_db_new.db")
+        self._students_databases = DatabaseStudents("students_db.db")
         self.init_menu()
         self.work()
 
@@ -528,20 +528,45 @@ class Menu:
 
     def command3(self):
         try:
+            if self._students_databases.count_rows('students'):
+                raise TableIsNotEmpty
             self._students_databases.initial_test_data()
         except ErrorNotLogining:
             print('Спочатку треба залогінитись')
         except ErrorNotAccess:
             print('Нема доступу')
-
-
-
+        except TableIsNotEmpty:
+            print('Таблиці містять дані. Не можна внести тестові дані')
 
     def command4(self):
-        print('Не реализовано')
+        try:
+            self._students_databases.access_check(True)
+
+            login = input('Введіть логін: ')
+            passwd = input('Введіть пароль: ')
+            admin =  input('Є права адміна (пусто - без прав)": ')
+            self._students_databases.add_user(login, passwd, admin)
+        except ErrorNotLogining:
+            print('Спочатку треба залогінитись')
+        except ErrorNotAccess:
+            print('Нема доступу')
+        except UserWithLoginIsRegistered:
+            print('Користувача з таким логіном вже зареєстровано')
+        except sqlite3.OperationalError:
+            print('Не вдалося записати дані')
 
     def command5(self):
-        print('Не реализовано')
+        try:
+            self._students_databases.access_check()
+            passwd = input('Введіть пароль: ')
+            self._students_databases.update_user(self._students_databases.login, passwd,
+                                                 self._students_databases.is_admin)
+
+
+        except ErrorNotLogining:
+            print('Спочатку треба залогінитись')
+        except sqlite3.OperationalError:
+            print('Не вдалося записати дані')
 
     def command6(self):
         try:
@@ -571,7 +596,43 @@ class Menu:
             print('Студента додано')
 
     def command7(self):
-        print('Не реализовано')
+        try:
+            self._students_databases.access_check(True)
+            student_id = input('Введіть id студента: ')
+            student = self._students_databases.get_info_from_students(student_id)
+
+            name = input(f"Введіть ФІО студента ({student['name']} по замовчанню): ")
+            name = name if name else student['name']
+
+            self._students_databases.print_groups()
+            id_group = input(f"Введіть ID групи ({student['name_group']} по замовчанню): ")
+            id_group = id_group if id_group else student['id_group']
+
+            self._students_databases.print_faculties()
+            id_faculty = input(f"Введіть ID групи ({student['name_faculty']} по замовчанню): ")
+            id_faculty = id_faculty if id_faculty else student['id_faculty']
+
+            student_number = input(f"Введіть № студентського: ({student['student_number']} по замовчанню):")
+            student_number = student_number if student_number else student['student_number']
+
+            self._students_databases.write_student(student_id, name, id_faculty, id_group, student_number)
+
+        except ErrorNotLogining:
+            print('Спочатку треба залогінитись')
+        except NoFindId:
+            print('Студента не знайдено')
+        except ErrorNotAccess:
+            print('Нема доступу')
+        except sqlite3.OperationalError:
+            print('Не вдалося записати дані')
+        except GroupDoesNotExist:
+            print('Не вірно вказано номер групи')
+        except FacultiesDoesNotExist:
+            print('Не вірно вказано номер факультету')
+        except StudetnAlreadyCreated:
+            print('Студент з таким номером студентського вже існує')
+        else:
+            print('Студента змінено')
 
     def command8(self):
         try:
@@ -598,6 +659,7 @@ class Menu:
         id = input('Введіть id студента: ')
         try:
             self._students_databases.print_info_current_student(id)
+            self._students_databases.print_mark_student(id)
         except ErrorNotLogining:
             print('Спочатку треба залогінитись')
         except NoFindId:
@@ -605,27 +667,3 @@ class Menu:
 
 if __name__ == '__main__':
     menu=Menu()
-
-    # students_databases = DatabaseStudents("students_db_new.db")
-    # students_databases._initial_tables()
-    # # students_databases._initial_test_data()
-    #
-    # # print(students_databases._login)
-    #
-    # students_databases.loggin('admin', 'admin')
-    # # students_databases.loggin('user', 'user')
-    # #
-    # # # students_databases.add_user('ks_admin', '123456', True)
-    # #
-    # # # students_databases.add_studetn('Student 1', 1, 2, 125464)
-    # # students_databases.print_all_students()
-    # #
-    # students_databases.print_student_find_number(333)
-    # students_databases.print_student_find_number(5555555)
-    # print()
-    # students_databases.print_info_current_student(2)
-    # students_databases.print_mark_student(2)
-    # students_databases.print_students_avg_mark(4.2)
-
-
-
