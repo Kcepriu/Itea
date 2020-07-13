@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{product_name}}</title>
+</head>
+<body>
+<h1>{{product_name}}</h1>
+
+<ul>
+    {%if product_info.price < 100 %}
+        <li>Цена - {{product_info.price}}</li>
+    {% else %}
+        <b><li>Цена - {{product_info.price}}</li></b>
+    {% endif %}
+    <li>Описание - {{product_info.description}}</li>
+    <li> Доступно:</li>
+    <ul>
+        {% for shop in product_info.available_in %}
+            <li>{{shop}}</li>
+
+
+        {%endfor%}
+
+    </ul>
+
+</ul>
+
+</body>
+</html>
