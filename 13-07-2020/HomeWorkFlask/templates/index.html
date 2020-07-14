@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Категорії товарів</title>
+</head>
+
+<body>
+    <h1>Категорії товарів</h1>
+    </br>
+
+    {%if not categories  %}
+        <h2>Категорії не внесені</h2>
+    {%else%}
+        {% for categori in categories %}
+            <a href=categories/{{categori['name_categiry']}}> <h2>{{categori['name_categiry']}} </h2> </a>
+        {%endfor%}
+    {%endif%}
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Опис товара</title>
+</head>
+<body>
+    <a href=/categories/{{product['name_categiry']}}>  <h3>Назад</h3> </a>
+    <h1>{{product['name']}}:</h1>
+
+    <ul>
+        <li> Ціна: {{product['price']}} </li>
+        <li> Колькість {{product['quantity']}} </li>
+        <li> Є {%if product['on_the_market'] %}
+                     в продажу
+                  {%else%}
+                     на складі
+                   {%endif%}
+        </li>
+    </ul>
+</body>
+</html>
