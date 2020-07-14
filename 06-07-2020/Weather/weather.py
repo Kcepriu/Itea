@@ -26,7 +26,6 @@ class Sinoptik():
         self._headers = requests.utils.default_headers()
         self._headers.update({'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/69.0'})
 
-
     def get_html(self, url):
         r = requests.get(url)
         return r.text
@@ -66,43 +65,31 @@ class Sinoptik():
 
         return {'description':description, 'min_temp':min_temp, 'max_temp':max_temp}
 
-    def print_weather(self, city=None, date=None):
+    #Винести в програму обробки класу
+    def return_weather(self, city=None, date=None):
         try:
             metcast = self.get_weather(city=city, date=date)
         except ErrorFoundCity:
-            print('Город указан не верно')
+            return 'Город указан не верно'
         except ErrorDate:
-            print('Нет данных на выбранную дату')
+            return 'Нет данных на выбранную дату'
         except ErrorFormatDate:
-            print('Не верный формат даты')
+            return 'Не верный формат даты'
         else:
             now = datetime.datetime.now()
             _city = city if city else self._default_city
             _date = date if date else now.strftime("%Y-%m-%d")
 
-            print(f'Прогноз погоды по г. {_city} на {_date} число:')
-            print(f"\tОписание: {metcast['description']}")
-            print(f"\tМинимальная температура: {metcast['min_temp']}")
-            print(f"\tМаксимальная температура: {metcast['max_temp']}")
+            return  f"""Прогноз погоды по г. {_city} на {_date} число:
+                \tОписание: {metcast['description']}
+                \tМинимальная температура: {metcast['min_temp']}
+                \tМаксимальная температура: {metcast['max_temp']}"""
 
+#689b01c43ded4804a84027bf54dc0817
 
-
-
-
-#blockDays
 
 if __name__ == '__main__':
     sinoptic = Sinoptik()
-    sinoptic.print_weather('Чернигов', '2020-07-20')
+    # sinoptic.print_weather('Чернигов', '2020-07-20')
+    print(sinoptic.return_weather())
 
-
-
-
-    # headers = requests.utils.default_headers()
-    # headers.update({ 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/69.0'})
-    #
-    #
-    # url = "https://google.com"
-    # req = requests.get(url, headers)
-    # soup = BeautifulSoup(req.content, 'html.parser')
-    # print(soup.prettify())
