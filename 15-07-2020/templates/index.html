@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Persons</title>
+</head>
+<body>
+    {%for person in persons %}
+        <p>{{person.name}}</p>
+        <p>{{person.surname}}</p>
+        <p>{{person.age}}</p>
+        <br>
+    {%endfor%}
+
+    <form action="", method="post">
+        <input type="text" name="name" placeholder="Введите имя нового пользователя">
+        <input type="text" name="surname" placeholder="Введите фамилию нового пользователя">
+        <input type="text" name="age" placeholder="Введите возраст нового пользователя">
+        <input type="submit">
+
+    </form>
+
+
+</body>
+</html>
