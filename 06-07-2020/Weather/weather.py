@@ -9,7 +9,7 @@ class MyWeatherError(Exception):
 class Error404(MyWeatherError):
     pass
 
-class ErrorFoundCity(MyWeatherError):
+class ErrorCityNotFound(MyWeatherError):
     pass
 
 class ErrorDate(MyWeatherError):
@@ -47,12 +47,12 @@ class Sinoptik():
             if date:
                 try:
                     self.get_weather(city)
-                except ErrorFoundCity:
-                    raise ErrorFoundCity
+                except ErrorCityNotFound:
+                    raise ErrorCityNotFound
                 else:
                     raise ErrorDate
             else:
-                raise ErrorFoundCity
+                raise ErrorCityNotFound
 
         block_day = soup.find('div', id="blockDays")
         current_name_block = block_day.get('class')
@@ -69,7 +69,7 @@ class Sinoptik():
     def return_weather(self, city=None, date=None):
         try:
             metcast = self.get_weather(city=city, date=date)
-        except ErrorFoundCity:
+        except ErrorCityNotFound:
             return 'Город указан не верно'
         except ErrorDate:
             return 'Нет данных на выбранную дату'
