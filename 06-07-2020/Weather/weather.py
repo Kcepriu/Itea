@@ -38,6 +38,22 @@ class MyWeather:
             if not re.findall('[1-2]\d\d\d-[0-1]\d-[0-3]\d', date):
                 raise ErrorFormatDate
 
+    def return_str_weather(self, city_name=None, date=None):
+        try:
+            metcast = self.get_weather(city_name, date)
+        except ErrorCityNotFound:
+            return 'Город указан не верно'
+        except ErrorDate:
+            return 'Нет данных на выбранную дату'
+        except ErrorFormatDate:
+            return 'Не верный формат даты'
+        else:
+            str_metcast=''
+            for i, dict_tm in metcast['metcast'].items():
+                str_metcast +=f"\t{i}\n\t\tТемпература: {dict_tm['temp']}\n\t\tОписание:{dict_tm['weather_description']}\n"
+
+            return f"Прогноз погоды по г.{city_name if city_name else self._default_city}  на {metcast['date']}\n{str_metcast}"
+
 
 class Sinoptik(MyWeather):
     def __init__(self):
@@ -98,7 +114,8 @@ class Sinoptik(MyWeather):
         for time, temp, desc in zip(list_time, list_temp, list_descr):
             dict_result[time]={'temp': temp, 'weather_description': desc}
 
-        return dict_result
+        date = date if date else datetime.datetime.now().strftime("%Y-%m-%d")
+        return {'date':date, 'metcast':dict_result}
 
 class OpenWeather(MyWeather):
     def __init__(self, api):
@@ -123,7 +140,7 @@ class OpenWeather(MyWeather):
         if not date in  dict_weather:
             raise ErrorDate
 
-        return dict_weather[date]
+        return {'date': date, 'metcast': dict_weather[date]}
 
 
     def parsing_result(self, text):
@@ -151,31 +168,22 @@ class OpenWeather(MyWeather):
             weather_date = result_weather.get(date_item, {})
             weather_date[time_item] = {'temp': temp, 'weather_description': weather_description}
             result_weather[date_item] = weather_date
+
         return result_weather
 
 if __name__ == '__main__':
     sinoptic = Sinoptik()
-    try:
-        metcast = sinoptic.get_weather('Чернигов', '2020-07-20')
-    except ErrorCityNotFound:
-        print('Город указан не верно')
-    except ErrorDate:
-        print('Нет данных на выбранную дату')
-    except ErrorFormatDate:
-        print('Не верный формат даты')
-    else:
-        print(metcast)
-
     open_weather = OpenWeather('689b01c43ded4804a84027bf54dc0817')
-    try:
-        metcast = open_weather.get_weather('Чернигов', '2020-07-20')
-    except ErrorCityNotFound:
-        print('Город указан не верно')
-    except ErrorDate:
-        print('Нет данных на выбранную дату')
-    except ErrorFormatDate:
-        print('Не верный формат даты')
-    else:
-        print(metcast)
 
 
+    # print(open_weather.return_str_weather('Чернигов', '2020-07-20'))
+    # print(sinoptic.return_str_weather('Чернигов', '2020-07-20'))
+
+    # print(open_weather.return_str_weather('Чернигов', '2020-07-29'))
+    # print(sinoptic.return_str_weather('Чернигов', '2020-07-29'))
+
+    # print(open_weather.return_str_weather('Чернигов'))
+    # print(sinoptic.return_str_weather('Чернигов'))
+
+    print(open_weather.return_str_weather())
+    print(sinoptic.return_str_weather())
