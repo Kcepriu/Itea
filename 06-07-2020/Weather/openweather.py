@@ -1,11 +1,20 @@
 import requests
 import json
-#http://api.openweathermap.org/data/2.5/forecast?q=козелец&units=metric&lang=ru&appid=689b01c43ded4804a84027bf54dc0817
-class ErrorCityNotFound(Exception):
-    pass
-class ErrorInvalidApiKey(Exception):
+import datetime
+
+class MyWeatherError(Exception):
     pass
 
+class ErrorCityNotFound(MyWeatherError):
+    pass
+class ErrorInvalidApiKey(MyWeatherError):
+    pass
+
+class ErrorDate(MyWeatherError):
+    pass
+
+class ErrorFormatDate(MyWeatherError):
+    pass
 
 class OpenWeather:
     def __init__(self, api):
@@ -18,13 +27,23 @@ class OpenWeather:
         r = requests.get(url)
         return r.text
 
-    def get_weather(self, city_name=None):
+    def get_weather(self, city_name=None, date=None):
         if not city_name:
             city_name = self._default_city
 
+        now = datetime.datetime.now()
+        date = date if date else now.strftime("%Y-%m-%d")
+
         url=f'{self._url}?q={city_name}{self._add_param}&appid={self._api}'
         html = self.get_html(url)
-        return self.parsing_result(html)
+
+        dict_weather = self.parsing_result(html)
+
+        if not date in  dict_weather:
+            raise ErrorDate
+
+        return dict_weather[date]
+
 
     def parsing_result(self, text):
         dict_result = json.loads(text)
@@ -57,4 +76,4 @@ class OpenWeather:
 
 if __name__ == '__main__':
     open_weather = OpenWeather('689b01c43ded4804a84027bf54dc0817')
-    print(open_weather.get_weather('Киев'))
+    print(open_weather.get_weather('Киев','2020-07-17'))
