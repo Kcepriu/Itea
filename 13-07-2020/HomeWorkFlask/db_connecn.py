@@ -1,7 +1,7 @@
 import sqlite3
 from queries import QueryFromTables
 
-class ConnectDatabase():
+class ConnectDatabase:
     def __init__(self, name_database):
 
         self._name_database = name_database

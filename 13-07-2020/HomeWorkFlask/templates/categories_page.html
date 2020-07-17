@@ -5,7 +5,7 @@
     <title>Продукція категорії {{name_categiry}} </title>
 </head>
 <body>
-    <a href=/>  <h3>Назад</h3> </a>
+    <a href=/>  <h3>Назад до списку категорій</h3> </a>
     <h1>Продукція категорії {{name_categiry}}:</h1>
     {%if not products%}
         <h2>В дану категорії не внесено продукцію.</h2>
@@ -14,5 +14,9 @@
             <a href=/product/{{product['id']}}> <h2>{{product['name']}} </h2> </a>
         {%endfor%}
     {%endif%}
+
+    <br>
+    <br>
+    <a href='/new_tovar/{{name_categiry}}'> <h4>Додати новий товар в  категорію {{name_categiry}}</h4> </a>
 </body>
 </html>

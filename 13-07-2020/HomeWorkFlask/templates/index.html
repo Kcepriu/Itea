@@ -7,15 +7,17 @@
 
 <body>
     <h1>Категорії товарів</h1>
-    </br>
+    <br>
 
     {%if not categories  %}
         <h2>Категорії не внесені</h2>
     {%else%}
         {% for categori in categories %}
-            <a href=categories/{{categori['name_categiry']}}> <h2>{{categori['name_categiry']}} </h2> </a>
+            <a href='categories/{{categori['name_categiry']}}'> <h2>{{categori['name_categiry']}} </h2> </a>
         {%endfor%}
     {%endif%}
-
+    <br>
+    <br>
+    <a href=/new_categories> <h4>Додати нову категорію</h4> </a>
 </body>
 </html>

@@ -32,7 +32,10 @@ class QueryFromTables:
                                 c.name_categiry from product  p
                     inner join categories c
                         on p.id_category = c.id
-                    where p.id=?'''
+                    where p.id=?''',
+            'insert_categories': 'INSERT INTO categories (name_categiry)  VALUES (?)',
+            'insert_product': '''INSERT INTO product (name, id_category, price, quantity, on_the_market)
+                                VALUES (?, ?, ?, ?, ?)'''
                 }
 
     def query_test_data(self):
