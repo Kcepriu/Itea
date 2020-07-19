@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # user = User(first_name='Bred', sur_name='Pit', age=50, interes=['Teatrs', 'Cinema', 'Sex'])
     # user.save()
 
-    #User.object.create(first_name='Serhii', sur_name='Kost', age=42, interes=['footbol', 'Programing'])
+    #User.objects.create(first_name='Serhii', sur_name='Kost', age=42, interes=['footbol', 'Programing'])
 
     users = User.objects(age__ne=10)
     # users = User.objects(interes__in=['Sex'])

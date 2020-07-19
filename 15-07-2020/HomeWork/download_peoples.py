@@ -10,7 +10,7 @@ class DownloadPeoples:
         r = requests.get(url)
         return r.text
 
-    def get_peoples(self):
+    def _get_download_peoples(self):
         html = self._get_html(self._url)
         soup = BeautifulSoup(html, 'lxml')
 
@@ -37,8 +37,12 @@ class DownloadPeoples:
             except AttributeError:
                 pass
 
+    def get_peoples(self):
+        self._get_download_peoples()
+        return list(self.peoples.keys())
 
 
-dw = DownloadPeoples()
-dw.get_peoples()
-print(dw.peoples)
+if __name__ == '__main__':
+    dw = DownloadPeoples()
+    dw.get_peoples()
+    print(dw.peoples)
