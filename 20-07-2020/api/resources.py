@@ -21,3 +21,4 @@ class UserResource(Resource):
         User.objects(id=user_id).delete()
 
 
+
