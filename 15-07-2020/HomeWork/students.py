@@ -77,7 +77,20 @@ class Student(me.Document):
 
         return Student.objects.filter(id_curator=curator)
 
+    def Excellent_Students_Faculties():
+        result = ''
+        for faculty in Faculties.objects:
+            result += faculty.name_faculty+'\n'
+            students = Student.objects(id_faculty=faculty.id).aggregate([
+                {'$unwind': '$mark_student'},
+                {'$group': {'_id': '$_id', 'average_mark': {'$avg': '$mark_student.mark'}}},
+                {'$match': {'average_mark': {'$gte': 10.0}}}
+            ])
 
+            for student in students:
+                result += f"\t{Student.objects(id=student['_id'])[0].__str__()},  середній бал {round(student['average_mark'], 2)} \n"
+
+        return result
 
 if __name__ == '__main__':
     me.connect('test2')
@@ -87,74 +100,9 @@ if __name__ == '__main__':
     # init_data.initial_data()
 
     # 2.  Вивести всіх студентів по куратору
-    # for student in Student.student_from_curator('Марина', 'Опришкіна'):
-    #     print(student)
+    for student in Student.student_from_curator('Марина', 'Опришкіна'):
+         print(student)
 
-    student = Student.objects.aggregate(
-                {
-                  $group :
-                    {
-                      _id : "$item",
-                      totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } }
-                    }
-                 },
-                 // Second Stage
-                 {
-                   $match: { "totalSaleAmount": { $gte: 100 } }
-                 }
-              )
-
-
-
-    filter(mark_student.average('mark') = 10)
-    print(student)
-    # Student.objects.aggregate()
-
-    # -------------------------------------------
-    # print('-'*5, 'Предмети')
-    # for i in Items.objects():
-    #     print(i)
-    #
-    # print('-'*5, 'Факультети')
-    # for i in Faculties.objects():
-    #     print(i)
-    #
-    # print('-'*5, 'Групи')
-    # for i in Groups.objects():
-    #     print(i)
-    #
-    # print('-'*5, 'Куратори')
-    # for i in Curators.objects():
-    #     print(i)
-
-    # print('-'*5, 'Студенти')
-    # for i in Student.objects():
-    #     print(i)
-    #     for m in i.mark_student:
-    #         print(m.name_item, m.mark)
-
-
-
-
-
-
-    # print(Items.objects(name_item__startswith='Матемети'))
-
-    # Student.objects.create(first_name='Сергій', sur_name='Костюченко', faculty='Фішико математичний', group='32', curator='Ананьев Бля')
-    #
-    # for i in Student.objects(sur_name='Костюченко'):
-    #     print(i)
-
-    # print(Student.objects.filter(sur_name='Костюченко'))
-    # stud = Student.objects.filter(sur_name='Костюченко')[0]
-    # # stud.sur_name = 'Боздуган'
-    # # stud.save()
-    #
-    # stud.mark_student.create(mark=5, name_item='Matematics')
-    # stud.save()
-
-
-
-    # print(Curators.objects.count())
-    # print(Curators.objects[17])
+    # 3. Відмінники по факультетам
+    print(Student.Excellent_Students_Faculties())
 
