@@ -4,7 +4,7 @@
 определенного куратора.'''
 
 import mongoengine as me
-from init_data import Ititial_Data as ID
+from seeder import Ititial_Data as ID
 
 class Items(me.Document):
     name_item = me.StringField(min_length=1, max_length=255, required=True, unique=True)
@@ -93,7 +93,7 @@ class Student(me.Document):
         return result
 
 if __name__ == '__main__':
-    me.connect('test2')
+    me.connect('test3')
 
     # 1. Інініціалізація даних !!!!!!!!!!!!!
     # init_data = ID(Items, Faculties, Groups, Curators, Student)
