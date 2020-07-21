@@ -8,5 +8,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="mpc" />
     <orderEntry type="module" module-name="mpc" />
+    <orderEntry type="module" module-name="Navcha" />
+    <orderEntry type="module" module-name="Anton" />
   </component>
 </module>
