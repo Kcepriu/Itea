@@ -6,6 +6,8 @@ class Test:
 
     def __get__(self, instance, owner):
         self.count += 1
+    def __call__(self, *args, **kwargs):
+        self.count += 1
 
 
 

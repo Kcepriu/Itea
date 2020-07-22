@@ -4,17 +4,18 @@ import datetime
 me.connect('db_post_1')
 
 class Author(me.Document):
-    first_name = me.StringField(min_length=8, max_length=256, required=True)
-    sur_name = me.StringField(min_length=8, max_length=256, required=True)
+    first_name = me.StringField(min_length=1, max_length=256, required=True)
+    sur_name = me.StringField(min_length=1, max_length=256, required=True)
 
 
-class Teg(me.EmbeddedDocument)
+class Teg(me.EmbeddedDocument):
     teg_name = me.StringField(min_length=2, max_length=255, required=True, unique=True)
 
+
 class Post(me.Document):
-    name = me.StringField(min_length=2, max_length=255, required=True, unique=True)
+    name = me.StringField(min_length=2, max_length=255, required=True)
     body = me.StringField(min_length=8, max_length=256, required=True)
-    date_publication = me.DateTimeField()
+    date_publication = me.DateTimeField(default=datetime.datetime.now())
 
     author =  me.ReferenceField(Author)
     author_name = me.StringField(min_length=1, max_length=256, required=True)
@@ -23,5 +24,6 @@ class Post(me.Document):
 
     teg = me.EmbeddedDocumentListField(Teg)
 
-    def __init__(self):
-        self.date_publication = datetime.datetime.now()
+    # def __init__(self, *args, **kwargs):
+    #     self.date_publication = datetime.datetime.now()
+
