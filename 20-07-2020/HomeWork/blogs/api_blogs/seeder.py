@@ -3,7 +3,7 @@ import mongoengine as me
 
 class Initial_Data:
     text_blogs = [
-                {'author_name': 'Тетяна Чорновол',
+                {'author_name': 'Тетяна111 Чорновол',
                  'name': '"Слуга народу" – сервісні послуги для олігархів',
                  'body': 'ЗЕ Рада проголосувала "зелену металургію". Тепер, якщо ви ненароком скрутили в''язи, '
                          'бо наркомани вкрали каналізаційний люк, то знайте – це не даремно, бо це ви постраждали '
@@ -73,53 +73,37 @@ class Initial_Data:
                 ]
 
     def add_author(self, first_name, sur_name):
-        find_author = Author(first_name=first_name, sur_name=sur_name)
-        if not find_author.id:
-            find_author.save()
-
+        try:
+            find_author = Author.objects(first_name=first_name, sur_name=sur_name).get()
+        except me.DoesNotExist:
+            find_author = Author.objects.create(first_name=first_name, sur_name=sur_name)
         return find_author
 
     def add_teg(self, teg_name):
-        find_teg = Tegs(teg_name=teg_name)
-
-        print(find_teg.id, teg_name)
-
-        if not find_teg.id:
-            find_teg.save()
-
-        print(find_teg.id, teg_name)
-
+        try:
+            find_teg = Tegs.objects(teg_name=teg_name).get()
+        except me.DoesNotExist:
+            # print('Create ',teg_name)
+            find_teg = Tegs.objects.create(teg_name=teg_name)
         return find_teg
 
     def initial_data(self):
         for item in self.text_blogs:
-            # first_name, sur_name = item['author_name'].split()
-            #
-            # item['author'] = self.add_author(first_name, sur_name)
-            # print(item['name'])
-            #
-            # kwargs=item.copy()
-            # kwargs.pop('tegs')
-            #
-            # new_post = Post.objects.create(**kwargs)
+            first_name, sur_name = item['author_name'].split()
 
-            # new_post = Post.objects.create(name=item['name'], body=item['body'], author=item['author'], author_name=item['author_name'])
+            item['author'] = self.add_author(first_name, sur_name)
+            kwargs=item.copy()
+            kwargs.pop('tegs')
 
-            for text_teg in item['tegs']:
-                new_teg = self.add_teg(text_teg)
+            new_post = Post.objects.create(**kwargs)
 
+            for teg_name in item['tegs']:
+                new_teg = self.add_teg(teg_name)
+                new_post.teg.create(teg=new_teg, teg_name=teg_name)
 
-                # new_post.teg.append(teg=new_teg)
+            new_post.save()
 
-            # new_post.save()
-
-
-
-
-        # print(Author.objects.count())
-
-
-
-initial = Initial_Data()
-initial.initial_data()
+if __name__ == '__main__':
+    initial = Initial_Data()
+    initial.initial_data()
 
