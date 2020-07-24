@@ -24,7 +24,7 @@ class PostResources(Resource):
         try:
             res = PostSchema().load(request.get_json())
             obj = AddFunction.add_post(res)
-            return TegsSchema().dumps(obj)
+            return TegsSchema().dump(obj)
         except ValidationError as err:
             return {'error': err.messages}
 
@@ -33,7 +33,7 @@ class PostResources(Resource):
             res = PostSchema().load(request.get_json())
             obj = Post.objects().get(id=post_id)
             AddFunction.update_post(obj, res)
-            return PostSchema().dumps(obj.reload())
+            return PostSchema().dump(obj.reload())
         except ValidationError as err:
             return {'error': err.messages}
 
@@ -58,7 +58,7 @@ class AuthorResources(Resource):
         try:
             res = AuthorSchema().load(request.get_json())
             obj = Author.objects.create(**res)
-            return AuthorSchema().dumps(obj)
+            return AuthorSchema().dump(obj)
 
         except ValidationError as err:
             return {'error': err.messages}
@@ -72,7 +72,7 @@ class AuthorResources(Resource):
 
             AddFunction.recursive_rename_author_from_posts(author_id, f'{author.first_name} {author.sur_name}')
 
-            return AuthorSchema().dumps(author.reload())
+            return AuthorSchema().dump(author.reload())
 
         except ValidationError as err:
             return {'error': err.messages}
@@ -98,7 +98,7 @@ class TegResources(Resource):
         try:
             res = TegsSchema().load(request.get_json())
             obj = Tegs.objects.create(**res)
-            return TegsSchema().dumps(obj)
+            return TegsSchema().dump(obj)
 
         except ValidationError as err:
             return {'error': err.messages}
@@ -112,7 +112,7 @@ class TegResources(Resource):
 
             AddFunction.recursive_rename_teg_from_posts(teg, teg.teg_name)
 
-            return TegsSchema().dumps(teg.reload())
+            return TegsSchema().dump(teg.reload())
 
         except ValidationError as err:
             return {'error': err.messages}

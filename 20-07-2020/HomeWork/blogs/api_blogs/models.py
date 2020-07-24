@@ -35,14 +35,9 @@ class Post(me.Document):
 
     teg = me.EmbeddedDocumentListField(TegField)
 
-    def add_count(self, post_id=None):
-        if post_id:
-            obj=Post.objects.get(id=post_id)
-            obj.count_viewing += 1
-            obj.save()
-        else:
-            self.count_viewing += 1
-            self.save()
+    def add_count(self):
+        self.count_viewing += 1
+        self.save()
 
 
 # pp = Post.objects().get(id='5f1ad6dbde7c6c96c0449325')
