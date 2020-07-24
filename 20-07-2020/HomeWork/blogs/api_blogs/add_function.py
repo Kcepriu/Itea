@@ -35,6 +35,43 @@ class AddFunction:
     def count_publication_author(author_id):
         return Post.objects().filter(author=author_id).count()
 
+    def add_tegs(obj_post, res):
+        for elem in res:
+            obj_teg = Tegs.objects.get(id=elem['teg'])
+            obj_post.teg.create(teg=obj_teg, teg_name=obj_teg.teg_name)
+
+    def add_post(dict_data):
+        kwargs = dict_data.copy()
+        tegs = kwargs.pop('teg')
+
+        obj_author = Author.objects.get(id=kwargs['author'])
+        kwargs['author_name'] = f'{obj_author.first_name} {obj_author.sur_name}'
+
+        new_post = Post.objects.create(**kwargs)
+
+        AddFunction.add_tegs(new_post, tegs)
+
+        new_post.save()
+
+        return new_post
+
+    def update_post(obj, dict_data):
+        kwargs = dict_data.copy()
+        tegs = kwargs.pop('teg')
+
+        obj_author = Author.objects.get(id=kwargs['author'])
+        kwargs['author'] = obj_author
+        kwargs['author_name'] = f'{obj_author.first_name} {obj_author.sur_name}'
+
+        obj.teg.clear()
+        obj.update(**kwargs)
+
+        AddFunction.add_tegs(obj, tegs)
+
+        obj.save()
+
+
+
 
 
 

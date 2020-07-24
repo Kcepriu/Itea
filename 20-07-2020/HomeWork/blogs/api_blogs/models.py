@@ -22,9 +22,6 @@ class TegField(me.EmbeddedDocument):
     teg = me.ReferenceField(Tegs)
     teg_name = me.StringField(min_length=2, max_length=255, required=True)
 
-    def __str__(self):
-        return str({'id': str(self.teg), 'teg_name': self.teg_name})
-
 
 class Post(me.Document):
     name = me.StringField(min_length=2, max_length=255, required=True)
@@ -48,3 +45,5 @@ class Post(me.Document):
             self.save()
 
 
+# pp = Post.objects().get(id='5f1ad6dbde7c6c96c0449325')
+# print(dir(pp.teg))

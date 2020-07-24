@@ -1,10 +1,10 @@
 from flask import request
 from flask_restful import Resource
 from marshmallow import ValidationError
+from mongoengine import DoesNotExist
 from .models import Post, Author, Tegs
 from .schemas import PostSchema, TegsSchema, AuthorSchema
 from .add_function import AddFunction
-
 
 class PostResources(Resource):
     def get(self, post_id=None):
@@ -21,16 +21,27 @@ class PostResources(Resource):
         return PostSchema().dump(objs, many=True)
 
     def post(self):
-        pass
+        try:
+            res = PostSchema().load(request.get_json())
+            obj = AddFunction.add_post(res)
+            return TegsSchema().dumps(obj)
+        except ValidationError as err:
+            return {'error': err.messages}
 
     def put(self, post_id):
-        pass
+        try:
+            res = PostSchema().load(request.get_json())
+            obj = Post.objects().get(id=post_id)
+            AddFunction.update_post(obj, res)
+            return PostSchema().dumps(obj.reload())
+        except ValidationError as err:
+            return {'error': err.messages}
+
 
     def delete(self, post_id):
         post = Post.objects().get(id=post_id)
         post.delete()
         return {'status': 'deleted'}
-
 
 class AuthorResources(Resource):
     def get(self, author_id=None):
@@ -53,7 +64,7 @@ class AuthorResources(Resource):
             return {'error': err.messages}
 
     def put(self, author_id):
-        # треба знайти список документів де використовується цей тег. Змінити назву і в них
+        # треба знайти список документів де використовується цей автор. Змінити назву і в них
         try:
             res = AuthorSchema().load(request.get_json())
             author = Author.objects().get(id=author_id)
@@ -122,6 +133,21 @@ class TegResources(Resource):
 
         teg.delete()
         return {'status': 'deleted'}
+
+class FindPostsResources(Resource):
+    def get(self, teg_name):
+        try:
+            teg = Tegs.objects.get(teg_name=teg_name)
+        except DoesNotExist as err:
+            return {'error': 'Не найден такой тег'}
+
+
+        find_posts = AddFunction.get_post_from_teg(teg.id)
+        result = []
+        for post in find_posts:
+            result.append(Post.objects().get(id=post['_id']))
+        return PostSchema().dump(result, many=True)
+
 
 
 
