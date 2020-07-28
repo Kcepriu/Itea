@@ -10,8 +10,8 @@ class Author(me.Document):
     def __str__(self):
         return str(self.id)
 
-
-class Tegs(me.Document):
+class Teg(me.Document):
+    # Осознано назвав teg_name. Так я к я хочу це імʼя зберігати і в TegField. А там буде зберігатись і teg
     teg_name = me.StringField(min_length=2, max_length=255, required=True, unique=True)
 
     def __str__(self):
@@ -19,7 +19,7 @@ class Tegs(me.Document):
 
 
 class TegField(me.EmbeddedDocument):
-    teg = me.ReferenceField(Tegs)
+    teg = me.ReferenceField(Teg)
     teg_name = me.StringField(min_length=2, max_length=255, required=True)
 
 
@@ -38,7 +38,3 @@ class Post(me.Document):
     def add_count(self):
         self.count_viewing += 1
         self.save()
-
-
-# pp = Post.objects().get(id='5f1ad6dbde7c6c96c0449325')
-# print(dir(pp.teg))

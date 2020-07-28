@@ -1,7 +1,7 @@
-from  models import Author, Post, Tegs
+from  models import Author, Post, Teg
 import mongoengine as me
 
-class Initial_Data:
+class InitialData:
     text_blogs = [
                 {'author_name': 'Тетяна111 Чорновол',
                  'name': '"Слуга народу" – сервісні послуги для олігархів',
@@ -81,10 +81,10 @@ class Initial_Data:
 
     def add_teg(self, teg_name):
         try:
-            find_teg = Tegs.objects(teg_name=teg_name).get()
+            find_teg = Teg.objects(teg_name=teg_name).get()
         except me.DoesNotExist:
             # print('Create ',teg_name)
-            find_teg = Tegs.objects.create(teg_name=teg_name)
+            find_teg = Teg.objects.create(teg_name=teg_name)
         return find_teg
 
     def initial_data(self):
@@ -104,6 +104,6 @@ class Initial_Data:
             new_post.save()
 
 if __name__ == '__main__':
-    initial = Initial_Data()
+    initial = InitialData()
     initial.initial_data()
 

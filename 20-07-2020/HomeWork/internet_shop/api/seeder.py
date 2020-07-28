@@ -1,6 +1,6 @@
-from  models import Products, Categories
+from  models import Product, Categorie
 
-class Initial_Data:
+class InitialData:
     data_from_init = {'products':[
         {'name': 'Телевізори LG 1', 'price': 13000.50, 'count': 10, 'availability': True, 'categorie': 'Телевізори LG'},
         {'name': 'Телевізори LG 2', 'price': 3000.80, 'count': 5, 'availability': True, 'categorie': 'Телевізори LG'},
@@ -49,14 +49,14 @@ class Initial_Data:
         for elem in list_categories:
             name_category = elem['parent']
             if name_category:
-                elem['parent'] = Categories.objects.get(category_name=name_category)
-            Categories.objects.create(**elem)
+                elem['parent'] = Categorie.objects.get(category_name=name_category)
+            Categorie.objects.create(**elem)
 
         list_products = self.data_from_init['products']
         for elem in list_products:
-            elem['categorie'] = Categories.objects.get(category_name=elem['categorie'])
-            Products.objects.create(**elem)
+            elem['categorie'] = Categorie.objects.get(category_name=elem['categorie'])
+            Product.objects.create(**elem)
 
 if __name__ == '__main__':
-    id = Initial_Data()
+    id = InitialData()
     id.initial_data()

@@ -2,7 +2,8 @@ from flask import request
 from flask_restful import Resource
 from marshmallow import ValidationError
 from mongoengine import DoesNotExist
-from .models import Post, Author, Tegs
+
+from .models import Post, Author, Teg
 from .schemas import PostSchema, TegsSchema, AuthorSchema
 from .add_function import AddFunction
 
@@ -91,13 +92,13 @@ class AuthorResources(Resource):
 class TegResources(Resource):
     def get(self, teg_id=None):
         if teg_id:
-            return TegsSchema().dump(Tegs.objects.get(id=teg_id))
-        return TegsSchema().dump(Tegs.objects(), many=True)
+            return TegsSchema().dump(Teg.objects.get(id=teg_id))
+        return TegsSchema().dump(Teg.objects(), many=True)
 
     def post(self):
         try:
             res = TegsSchema().load(request.get_json())
-            obj = Tegs.objects.create(**res)
+            obj = Teg.objects.create(**res)
             return TegsSchema().dump(obj)
 
         except ValidationError as err:
@@ -107,7 +108,7 @@ class TegResources(Resource):
         # треба знайти список документів де використовується цей тег. Змінити назву і в них
         try:
             res = TegsSchema().load(request.get_json())
-            teg = Tegs.objects().get(id=teg_id)
+            teg = Teg.objects().get(id=teg_id)
             teg.update(**res)
 
             AddFunction.recursive_rename_teg_from_posts(teg, teg.teg_name)
@@ -119,7 +120,7 @@ class TegResources(Resource):
 
     def delete(self, teg_id):
         #треба знайти список документів де використовується цей тег. Якщо такий є то не видаляємо
-        teg = Tegs.objects().get(id=teg_id)
+        teg = Teg.objects().get(id=teg_id)
 
         find_posts = AddFunction.get_post_from_teg(teg.id)
         try:
@@ -137,7 +138,7 @@ class TegResources(Resource):
 class FindPostsResources(Resource):
     def get(self, teg_name):
         try:
-            teg = Tegs.objects.get(teg_name=teg_name)
+            teg = Teg.objects.get(teg_name=teg_name)
         except DoesNotExist as err:
             return {'error': 'Не найден такой тег'}
 
