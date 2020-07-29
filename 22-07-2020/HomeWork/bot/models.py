@@ -7,12 +7,12 @@ import datetime
 
 me.connect('db_bot_1')
 
-class Users(me.Document):
+class User(me.Document):
     user_id = me.IntField(unique=True, required=True)
     first_name = me.StringField(min_length=2, max_length=255)
     last_name = me.StringField(min_length=2, max_length=255)
     username = me.StringField(min_length=2, max_length=255, required=True, unique=True)
 
 class Request(me.Document):
-    user = me.ReferenceField(Users)
+    user = me.ReferenceField(User)
     user_name = me.StringField()

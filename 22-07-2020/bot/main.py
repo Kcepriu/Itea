@@ -5,7 +5,8 @@ bot = TeleBot(TOKEN)
 
 @bot.message_handler(content_types=['text'], commands=['start'])
 def start(message):
-    bot.send_message(message.from_user.id, 'Hello')
+    bot.send_message(message.from_user.id, 'Прийом заявки')
+    bot.send_message(message.from_user.id, 'Введите ваше имя')
 
 @bot.message_handler(content_types=['text'])
 def hello(message):
