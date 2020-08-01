@@ -3,7 +3,6 @@
 Записывать сформированную заявку в БД (по желанию SQl/NOSQL).).'''
 
 import mongoengine as me
-import datetime
 
 me.connect('db_bot_1')
 
