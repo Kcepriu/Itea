@@ -1,0 +1,57 @@
+ git status
+  917  it init
+  918  git init
+  919  pip install mongoengine
+  920  pip install flask-restful
+  921  pip install marshmallow
+  922  pip install PyTelegramBotAPI
+  923  git --help
+  924  git init
+  925  git add .
+  926  git commit "Initial data. Bot category"
+  927  git status
+  928  git
+  929  git commit "Initial data. Bot category"
+  930  git add .
+  931  git commit "Initial data. Bot category"
+  932  git push
+  933  cd ./webshop/
+  934  python3 ./start.py
+  935  git init
+  936  git commit -m "Initial git"
+  937  git add .
+  938  git commit -m "Initial git"
+  939  git remote add origin https://github.com/Kcepriu/webshop.git
+  940  git push -u origin master
+  941  git add .
+  942  git commit -m "Initial git"
+  943  git push
+  944  git log
+  945  git add .
+  946  git status
+  947  git add .
+  948  git status
+  949  git commit -m "Initial git"
+  950  git push
+  951  git status
+  952  ls -la
+  953  cd ..
+  954  git init
+  955  git add .
+  956  git commit -m "Initial git"
+  957  git remote add origin https://github.com/Kcepriu/webshop.git
+  958  git push -u origin master
+  959  git remote add origin https://github.com/Kcepriu/webshop_project.git
+  960  git init
+  961  git add .
+  962  git commit -m "Initial git"
+  963  git remote add origin https://github.com/Kcepriu/webshop_project.git
+  964  git push -u origin master
+  965  git init
+  966  git add .
+  967  git commit -m "Initial git"
+  968  git remote add origin https://github.com/Kcepriu/webshop_project.git
+  969  git push -u origin master
+  970  git
+  971  git pull
+  972  cd ./webshop/
